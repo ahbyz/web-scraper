@@ -100,9 +100,7 @@ export class AppService {
     const lead = {} as Lead;
     try {
       await driver.get(url);
-      await new Promise((resolve) => setTimeout(resolve, 0.5 * 1000));
-      await driver.actions().sendKeys(Key.ESCAPE).perform();
-      await driver.actions().sendKeys(Key.ESCAPE).perform();
+      await new Promise((resolve) => setTimeout(resolve, 2.0 * 1000));
       await driver.actions().sendKeys(Key.ESCAPE).perform();
 
       await this.nameParser(driver, lead);
@@ -129,27 +127,27 @@ export class AppService {
     await driver.get('https://www.thumbtack.com/login');
     await new Promise((resolve) => setTimeout(resolve, 40 * 1000));
 
-    // const urlList = this.readJSONFile();
-    // for (const url of urlList) {
-    //   const lead = await this.scrapeSingleLead(driver, url, patlaklar);
-    //   console.log(lead);
-    //   leads.add(lead);
-    const url =
-      'https://www.thumbtack.com/pro-inbox/messages/482856732737527809';
-    const lead = await this.scrapeSingleLead(driver, url, patlaklar);
+    const urlList = this.readJSONFile();
+    for (const url of urlList) {
+      const lead = await this.scrapeSingleLead(driver, url, patlaklar);
+      console.log(lead);
+      leads.add(lead);
+    }
     driver.quit();
 
     const writeFile = util.promisify(fs.writeFile);
 
     // Write the JSON string to a file
-    writeFile('patlak_single_lead.json', JSON.stringify(Array.from(patlaklar)))
+    writeFile(
+      'ilkSetTekrarScrapeSonucuPatlayanlar.json',
+      JSON.stringify(Array.from(patlaklar)),
+    )
       .then(() => console.log('Set successfully written to file'))
       .catch((error) => console.log('An error occurred: ', error));
 
-    const ws = fs.createWriteStream('test_single_lead.csv');
+    const ws = fs.createWriteStream('/ilkSetTekrar.csv');
 
-    // fastcsv.write(Array.from(leads), { headers: true }).pipe(ws);
-    fastcsv.write([lead], { headers: true }).pipe(ws);
+    fastcsv.write(Array.from(leads), { headers: true }).pipe(ws);
     return '200';
   }
 
@@ -201,7 +199,7 @@ export class AppService {
 
   readJSONFile() {
     try {
-      const filePath: string = __dirname + '/..' + '/patlaklar_v2.json';
+      const filePath: string = __dirname + '/..' + 'ilkSet.json';
       // Read the JSON file
       const jsonData: string = fs.readFileSync(filePath, 'utf-8');
 
