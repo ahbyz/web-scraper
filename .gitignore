@@ -1,6 +1,8 @@
 # compiled output
 /dist
 /node_modules
+/filters
+/other_data
 
 # Logs
 logs

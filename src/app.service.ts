@@ -20,6 +20,7 @@ export interface Lead {
   state: string;
   zipcode: string;
   date: string;
+  year: string;
   phoneNumber: string;
   additionalDetails: string;
   applianceModel: string;
@@ -35,12 +36,12 @@ export class AppService {
     return 'Hello World!';
   }
 
-  async getTest() {
+  async getURLs() {
     const driver = await new Builder().forBrowser(Browser.CHROME).build();
     const hrefSet = new Set<string>();
     try {
       await driver.get('https://www.thumbtack.com/login');
-      await new Promise((resolve) => setTimeout(resolve, 60 * 1000));
+      await new Promise((resolve) => setTimeout(resolve, 30 * 1000));
       await driver.get('https://www.thumbtack.com/pro-inbox/');
       await new Promise((resolve) => setTimeout(resolve, 5 * 1000));
 
@@ -65,8 +66,8 @@ export class AppService {
       const writeFile = util.promisify(fs.writeFile);
 
       // Write the JSON string to a file
-      writeFile('mySet.json', JSONstring)
-        .then(() => console.log('Set successfully written to file'))
+      writeFile('URLs.json', JSONstring)
+        .then(() => console.log('URL Set successfully written to file'))
         .catch((error) => console.log('An error occurred: ', error));
 
       await driver.quit();
@@ -76,7 +77,7 @@ export class AppService {
   async clickOnButton(driver: WebDriver) {
     const button = await driver.findElement(
       By.css(
-        'button.vIRQFgYANCphKO9-RQaWv._2eWpUjwqkd3Pc7R5-BrPsX._20rw6psACTyqtM3mL6JeIu.ArrQhpVb_OlUvvUB9kTXR._3cIEUsng3TDgiRnynzNONk',
+        'button._16NKakpnELf3DwUedvpV_X._1sSZbPAMielkGXrVWtZ9jP._3rLarL0ry0k1i8fPIdxNKs._3VEQo0fhftlSDHGFfoapp8._18uW4KddtyR0QbPIi7lLMe',
       ),
     );
     button.click();
@@ -116,7 +117,12 @@ export class AppService {
       return lead;
     } catch (error) {
       patlaklar.add(url);
-      console.log('PATLADI', error, 'URL', url);
+      console.log(
+        'Could not fetch this message for the given URL',
+        error,
+        'URL',
+        url,
+      );
     }
   }
 
@@ -138,14 +144,11 @@ export class AppService {
     const writeFile = util.promisify(fs.writeFile);
 
     // Write the JSON string to a file
-    writeFile(
-      'ilkSetTekrarScrapeSonucuPatlayanlar.json',
-      JSON.stringify(Array.from(patlaklar)),
-    )
+    writeFile('FetchErrorMessages.json', JSON.stringify(Array.from(patlaklar)))
       .then(() => console.log('Set successfully written to file'))
       .catch((error) => console.log('An error occurred: ', error));
 
-    const ws = fs.createWriteStream('/ilkSetTekrar.csv');
+    const ws = fs.createWriteStream('ScrapeResults.csv');
 
     fastcsv.write(Array.from(leads), { headers: true }).pipe(ws);
     return '200';
@@ -159,9 +162,12 @@ export class AppService {
       1000,
     );
 
-    // const spanElements = await driver.findElements(
-    //   By.css('span[data-test="styled-text-single"].pre-line'),
-    // );
+    lead.additionalDetails = '';
+    lead.applianceModel = '';
+    lead.applianceType = '';
+    lead.applianceBrand = '';
+    lead.propertyType = '';
+
     for (let i = 0; i < spanElements.length; i++) {
       const text: string = await spanElements[i].getText();
 
@@ -185,10 +191,6 @@ export class AppService {
       1000,
     );
 
-    // const element = await driver.findElements(
-    //   By.css('._2v5dnc3iwVH_7JAa79QfVk'),
-    // );
-
     for (const el of element) {
       const text: string = await el.getText();
       if (text.startsWith('$')) {
@@ -199,13 +201,11 @@ export class AppService {
 
   readJSONFile() {
     try {
-      const filePath: string = __dirname + '/..' + 'ilkSet.json';
+      const filePath: string = __dirname + '/../..' + '/URLs.json';
       // Read the JSON file
       const jsonData: string = fs.readFileSync(filePath, 'utf-8');
-
       // Parse the JSON data
       const parsedData: any = JSON.parse(jsonData);
-
       return parsedData;
     } catch (error) {
       console.error('Error reading JSON file:', error);
@@ -221,12 +221,6 @@ export class AppService {
       ),
       1000,
     );
-
-    // const element = await driver.findElement(
-    //   By.css(
-    //     '.tp-body-3.self-stretch.tc.b.black-300.flex.justify-center.message__date--visible .flex.flex-1.mw-100.m_mw6.justify-center.items-center.message__divider .ph3',
-    //   ),
-    // );
 
     // Get the text from the span
     const date = await element.getText();
@@ -255,14 +249,10 @@ export class AppService {
       1000,
     );
 
-    // const element = await driver.findElement(
-    //   By.css('.mr2 ._3n1ubgNywOj7LmMk3eLlub.flex'),
-    // );
-
     // Get the text from the div
     const address = await element.getText();
 
-    console.log('address', address);
+    // console.log('address', address);
 
     const adressInfo = address.split(',');
 
@@ -312,7 +302,7 @@ export class AppService {
 
     const leads = [lead1, lead2];
 
-    const ws = fs.createWriteStream('test.csv');
+    const ws = fs.createWriteStream('testResult.csv');
 
     fastcsv.write(leads, { headers: true }).pipe(ws);
   }
@@ -325,9 +315,6 @@ export class AppService {
       1000,
     );
 
-    // const buttons = await driver.findElements(
-    //   By.css('button._230fLSlginFVu7q_SLOkRk._2uwAL44FcBnDRususT6gtq'),
-    // );
     let mybutton: WebElement;
     for (const button of buttons) {
       const text = await button.getText();

@@ -10,9 +10,9 @@ export class AppController {
     return this.appService.getHello();
   }
 
-  @Get('/test')
+  @Get('/URLs')
   getTest() {
-    return this.appService.getTest();
+    return this.appService.getURLs();
   }
 
   @Get('/data')
